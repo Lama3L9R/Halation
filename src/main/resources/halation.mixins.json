@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "icu.lama.forge.halation.inject",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "halation.refmap.json",
+  "mixins": [
+  ],
+  "server": [
+    "MinecraftChatHandler"
+  ],
+  "minVersion": "0.8"
+}

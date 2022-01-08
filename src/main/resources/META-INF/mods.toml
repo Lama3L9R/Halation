@@ -1,0 +1,28 @@
+modLoader = "kotlinforforge"
+loaderVersion = "[1,)"
+logoFile = ""
+license = "Anti-996"
+
+[[mods]]
+    modId = "halation"
+    version = "1.0.0"
+    displayName = "Halation"
+    author = "Qumolama.d"
+    credits = "icu.lama"
+    description = '''
+        Allah is the only cookiezi.
+    '''
+
+[[dependencies.halation]]
+    modId = "forge"
+    mandatory = true
+    versionRange="[36.0.0,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.halation]]
+    modId = "minecraft"
+    mandatory = true
+    versionRange = "[1.16.5, 1.17)"
+    ordering = "NONE"
+    side = "BOTH"
