@@ -8,9 +8,8 @@ import net.minecraft.world.level.dimension.DimensionType
 
 object ServerChatNetworkHandler {
     fun handle(source: ServerPlayer, msg: String): Component {
-        // TODO Get prefix from PrefixManager
         // TODO Check is mute
-        return TextComponent("${ChatColor.GRAY}[${getWorldName(source)}${ChatColor.GRAY}] ${ChatColor.GRAY}[${ChatColor.GREEN}Innocent${ChatColor.GRAY}] ").append(source.name).append(" ${ChatColor.GRAY}: ${ChatColor.RESET}${msg}")
+        return TextComponent("${ChatColor.GRAY}[${getWorldName(source)}${ChatColor.GRAY}] ${ChatColor.GRAY}[${ChatColor.GREEN}${PrefixManager[source.uuid]}${ChatColor.GRAY}] ").append(source.name).append(" ${ChatColor.GRAY}: ${ChatColor.RESET}${msg}")
     }
 
     private fun getWorldName(player: ServerPlayer): String {
