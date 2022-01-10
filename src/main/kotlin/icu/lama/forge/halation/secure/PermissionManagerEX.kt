@@ -2,14 +2,13 @@ package icu.lama.forge.halation.secure
 
 import icu.lama.forge.halation.HalationConfig
 import icu.lama.forge.halation.HalationForge
-import icu.lama.forge.halation.utils.doc
-import icu.lama.forge.halation.utils.potential
-import icu.lama.forge.halation.utils.static
-import icu.lama.forge.halation.utils.with
+import icu.lama.forge.halation.utils.*
+import icu.lama.forge.halation.utils.EventListener
 import net.minecraftforge.event.entity.player.PlayerEvent
 import net.minecraftforge.eventbus.api.SubscribeEvent
 import org.bson.Document
 import java.util.*
+import kotlin.comparisons.then
 import kotlin.concurrent.thread
 
 // EX makes this class look cooler
@@ -69,7 +68,7 @@ object PermissionManagerEX {
 
         groupPermissions.find().forEach { doc ->
             val permissions = doc.getList("permissions", PermissionNode::class.java)
-            doc.getList("members", String::class.java).map { UUID.fromString(it) }.forEach {
+            doc.getList("members", String::class.java).map(UUID::fromString).forEach {
                 if(it !in caches) {
                     caches[it] = permissions
                 } else {
@@ -99,7 +98,7 @@ object PermissionManagerEX {
     }
 
     // TODO test
-    object Player {
+    @EventListener object Player {
         @SubscribeEvent @static fun onPlayerLogin(e: PlayerEvent.PlayerLoggedInEvent) {
             if(e.player.uuid !in caches) {
                 val doc = Document()
@@ -211,33 +210,28 @@ object PermissionManagerEX {
     }
 
     object Group {
-        // todo impl
         fun grant(name: String, node: String) {
-
-        }
-
-        fun create(name: String) {
-            groupPermissions.insertOne(doc("""
+            groupPermissions.findOneAndUpdate(doc("""
                 {
-                    "name": "$name",
-                    "members": [],
-                    "permissions": []
+                    "name": "$name"
                 }
-            """.trimIndent()))
+            """.trimIndent()), doc("""
+                "${"\$push"}": {
+                    "permissions": "$node"
+                }
+            """.trimIndent()))?.then {
+                this.getList("members", String::class.java).map(UUID::fromString).forEach {
+                    if(it !in caches) {
+                        HalationForge.logger.potential("PermissionEX", "dE24SrX", "A member disappeared??? UUID = $it")
+                        caches[it] = listOf(PermissionNode(node))
+                    } else {
+                        caches[it] = caches[it]!! + PermissionNode(node)
+                    }
+                }
+            }
         }
 
-        fun list() {
-
-        }
-
-        fun delete(name: String) {
-
-        }
-
-        fun query(name: String) {
-
-        }
-
+        // todo impl
         fun addMember(name: String, uuid: UUID) {
 
         }
@@ -252,6 +246,44 @@ object PermissionManagerEX {
 
         fun restrict(name: String, node: String) {
 
+        }
+
+        fun create(name: String) {
+            groupPermissions.insertOne(doc("""
+                {
+                    "name": "$name",
+                    "members": [],
+                    "permissions": []
+                }
+            """.trimIndent()))
+        }
+
+        fun list(filter: Document? = null): List<GroupEntry> {
+            return if(filter == null) {
+                groupPermissions.find()
+            } else {
+                groupPermissions.find(filter)
+            }.map {
+                GroupEntry(it.getString("name"), it.getList("permissions", String::class.java), it.getList("members", String::class.java))
+            }.toList()
+        }
+
+        fun delete(name: String) {
+            groupPermissions.deleteOne(doc("""
+                {
+                    "name": "$name"
+                }
+            """.trimIndent()))
+        }
+
+        fun query(name: String): GroupEntry? {
+            return groupPermissions.find(doc("""
+                {
+                    "name": "$name"
+                }
+            """.trimIndent())).map {
+                GroupEntry(it.getString("name"), it.getList("permissions", String::class.java), it.getList("members", String::class.java))
+            }.toList().takeIf { it.size == 1 }?.get(0)
         }
     }
 }

@@ -23,6 +23,11 @@ fun <CallList, CompanionList, Result> List<CallList>.with(list: List<CompanionLi
     return result
 }
 
+/**
+ * @param id Should be generated randomly
+ */
 fun Logger.potential(module: String, id: String, msg: String) {
-    this.warn("Potential Bug Report from '${module}' | ID = ${id}: $msg")
+    this.warn("!! Potential Bug Report !! Source = '${module}' UniqueID = $id --> $msg")
 }
+
+fun <T, R> T.then(func: T.() -> R) = func()
