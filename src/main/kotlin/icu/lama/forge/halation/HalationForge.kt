@@ -7,11 +7,17 @@ import icu.lama.forge.halation.chat.commands.CommandPrefix
 import icu.lama.forge.halation.commands.CommandManualMangoDBOperation
 import icu.lama.forge.halation.commands.HalationCommandRegistry
 import net.minecraft.commands.Commands
+import net.minecraft.core.Registry
 import net.minecraft.gametest.framework.TestCommand
+import net.minecraft.resources.ResourceKey
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.server.MinecraftServer
+import net.minecraft.server.level.ServerLevel
 import net.minecraftforge.event.RegisterCommandsEvent
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.config.ModConfig
 import net.minecraftforge.fml.loading.FMLEnvironment
+import net.minecraftforge.fml.server.ServerLifecycleHooks
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import thedarkcolour.kotlinforforge.forge.FORGE_BUS
@@ -21,6 +27,7 @@ import thedarkcolour.kotlinforforge.forge.LOADING_CONTEXT
 @Mod("halation")
 object HalationForge {
     val logger: Logger = LogManager.getLogger()
+    val theServer: MinecraftServer? = ServerLifecycleHooks.getCurrentServer()
     lateinit var mongoClient: MongoClient
     lateinit var mongoDatabase: MongoDatabase
 
@@ -42,6 +49,7 @@ object HalationForge {
             mongoClient = MongoClient(HalationConfig.Mongodb.mongodbURL.get())
             mongoDatabase = mongoClient.getDatabase(HalationConfig.Mongodb.database.get())
         }
+
     }
 
     private fun registerCommands(event: RegisterCommandsEvent) {
@@ -67,5 +75,9 @@ object HalationForge {
         ) // 写都写了，懒得动了就这样了，出问题再迁移到新指令系统
 
         HalationCommandRegistry.register(CommandPrefix)
+    }
+
+    fun getLevel(name: String): ServerLevel? {
+        return theServer!!.getLevel(ResourceKey.create(Registry.DIMENSION_REGISTRY, ResourceLocation(name)))
     }
 }

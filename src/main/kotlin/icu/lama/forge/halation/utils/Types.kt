@@ -4,6 +4,7 @@ import com.mojang.brigadier.Command
 import com.mojang.brigadier.context.CommandContext
 import net.minecraft.commands.CommandSourceStack
 import net.minecraftforge.common.ForgeConfigSpec
+import net.minecraftforge.eventbus.api.SubscribeEvent
 import net.minecraftforge.fml.common.Mod
 
 
@@ -15,3 +16,4 @@ typealias CommandContext = CommandContext<CommandSourceStack>
 
 typealias static = JvmStatic
 typealias EventListener = Mod.EventBusSubscriber
+typealias EventHandler = SubscribeEvent

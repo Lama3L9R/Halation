@@ -2,6 +2,7 @@ package icu.lama.forge.halation.utils
 
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.TextComponent
+import net.minecraft.network.protocol.game.ClientboundSetTitlesPacket
 import net.minecraft.server.level.ServerPlayer
 import org.apache.logging.log4j.Logger
 import org.bson.BsonDocument
@@ -65,4 +66,8 @@ fun String.toComponent(): Component {
 
 fun ServerPlayer.sendMessage(msg: String) {
     this.sendMessage(msg.toComponent(), void())
+}
+
+fun ServerPlayer.sendTitle(title: String = "", subTitle: String = "", actionBar: String = "", fadeIn: Int = 2, stay: Int = 5, fadeOut: Int = 2) {
+    this.connection.send(ClientboundSetTitlesPacket())
 }
