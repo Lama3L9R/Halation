@@ -6,8 +6,8 @@ import net.minecraft.server.level.ServerPlayer
 object HalationCommandRegistry {
     private val commands = mutableMapOf<String, CommandBase>()
 
-    fun register(name: String, command: CommandBase) {
-        commands[name] = command
+    fun register(command: CommandBase) {
+        commands[command.baseName] = command
     }
 
     fun execute(raw: String, sender: ServerPlayer): Boolean {

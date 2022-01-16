@@ -78,6 +78,11 @@ object PermissionManagerEX {
         }
     }
 
+    fun check(uuid: UUID, permission: String): Boolean {
+        val permissions = caches[uuid] ?: return false
+        return check(permission, permissions)
+    }
+
     private fun check(check: String, nodes: List<PermissionNode>): Boolean {
         return nodes.filter { match(check, it.node) }.run { this.none { !it.state } && this.isNotEmpty() }
     }

@@ -3,7 +3,9 @@ package icu.lama.forge.halation
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mongodb.MongoClient
 import com.mongodb.client.MongoDatabase
+import icu.lama.forge.halation.chat.commands.CommandPrefix
 import icu.lama.forge.halation.commands.CommandManualMangoDBOperation
+import icu.lama.forge.halation.commands.HalationCommandRegistry
 import net.minecraft.commands.Commands
 import net.minecraft.gametest.framework.TestCommand
 import net.minecraftforge.event.RegisterCommandsEvent
@@ -62,6 +64,8 @@ object HalationForge {
                     .then(Commands.argument("target", StringArgumentType.string()))
                     .then(Commands.argument("document", StringArgumentType.string()))
                     .executes(CommandManualMangoDBOperation.Insert))
-        )
+        ) // 写都写了，懒得动了就这样了，出问题再迁移到新指令系统
+
+        HalationCommandRegistry.register(CommandPrefix)
     }
 }
