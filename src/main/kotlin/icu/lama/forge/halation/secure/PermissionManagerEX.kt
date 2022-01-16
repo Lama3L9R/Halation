@@ -19,7 +19,7 @@ import kotlin.concurrent.thread
 Data structure:
     PermissionNode {
         node: string | regex
-        state: 'allowed' | 'restricted'
+        state: true | false
     }
 
     PlayerEntry {
@@ -78,7 +78,7 @@ object PermissionManagerEX {
         }
     }
 
-    fun check(check: String, nodes: List<PermissionNode>): Boolean {
+    private fun check(check: String, nodes: List<PermissionNode>): Boolean {
         return nodes.filter { match(check, it.node) }.run { this.none { !it.state } && this.isNotEmpty() }
     }
 
@@ -231,22 +231,65 @@ object PermissionManagerEX {
             }
         }
 
-        // todo impl
         fun addMember(name: String, uuid: UUID) {
-
+            groupPermissions.findOneAndUpdate(doc("""
+                {
+                    "name": "$name"
+                }
+            """.trimIndent()), doc("""
+                {
+                    "${"\$push"}": {
+                        "members": "$uuid"
+                    }
+                }
+            """.trimIndent()))?.getList("permissions", String::class.java)?.forEach {
+                caches[uuid] = caches[uuid]!! + PermissionNode(it)
+            }
         }
 
         fun removeMember(name: String, uuid: UUID) {
-
-        }
+            groupPermissions.findOneAndUpdate(doc("""
+                {
+                    "name": "$name"
+                }
+            """.trimIndent()), doc("""
+                {
+                    "${"\$pull"}": {
+                        "members": "$uuid"
+                    }
+                }
+            """.trimIndent()))?.getList("permissions", String::class.java)?.forEach { node ->
+                caches[uuid] = caches[uuid]!!.filter { it.node != node }
+            }
+        } // No modify!! Copilot nice works!
 
         fun revoke(name: String, node: String) {
-
-        }
+            groupPermissions.findOneAndUpdate(doc("""
+                {
+                    "name": "$name"
+                }
+            """.trimIndent()), doc("""
+                {
+                    "${"\$pull"}": {
+                        "permissions": "$node"
+                    }
+                }
+            """.trimIndent()))
+        } // Copilot yyds!
 
         fun restrict(name: String, node: String) {
-
-        }
+            groupPermissions.updateOne(doc("""
+                {
+                    "name": "$name"
+                }
+            """.trimIndent()), doc("""
+                {
+                    "${"\$push"}": {
+                        "permissions": { "node": "$node", "state": false }
+                    }
+                }
+            """.trimIndent()))
+        } // Copilot YYDS!!!
 
         fun create(name: String) {
             groupPermissions.insertOne(doc("""

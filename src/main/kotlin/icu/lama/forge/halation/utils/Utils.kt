@@ -1,10 +1,17 @@
 package icu.lama.forge.halation.utils
 
-import icu.lama.forge.halation.HalationForge
-import icu.lama.forge.halation.secure.PermissionManagerEX
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.TextComponent
+import net.minecraft.server.level.ServerPlayer
 import org.apache.logging.log4j.Logger
 import org.bson.BsonDocument
 import org.bson.Document
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.util.*
+import java.util.stream.Collectors
+
+fun void(): UUID = UUID(0, 0)
 
 fun bson(bson: String): BsonDocument {
     return BsonDocument.parse(bson)
@@ -31,3 +38,31 @@ fun Logger.potential(module: String, id: String, msg: String) {
 }
 
 fun <T, R> T.then(func: T.() -> R) = func()
+
+
+fun findAllClassesUsingClassLoader(packageName: String): Set<Class<*>?>? {
+    val stream = ClassLoader.getSystemClassLoader().getResourceAsStream(packageName.replace("[.]".toRegex(), "/"))
+    val reader = BufferedReader(InputStreamReader(stream))
+    return reader.lines()
+        .filter { it.endsWith(".class") }
+        .map { getClass(it, packageName) }
+        .collect(Collectors.toSet())
+}
+
+private fun getClass(className: String, packageName: String): Class<*>? {
+    try {
+        return Class.forName(
+            packageName + "."
+                    + className.substring(0, className.lastIndexOf('.'))
+        )
+    } catch (e: ClassNotFoundException) { }
+    return null
+}
+
+fun String.toComponent(): Component {
+    return TextComponent(this)
+}
+
+fun ServerPlayer.sendMessage(msg: String) {
+    this.sendMessage(msg.toComponent(), void())
+}

@@ -2,6 +2,7 @@ package icu.lama.forge.halation.inject;
 
 import icu.lama.forge.halation.HalationForge;
 import icu.lama.forge.halation.chat.ServerChatNetworkHandler;
+import icu.lama.forge.halation.commands.HalationCommandRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
 import net.minecraft.Util;
@@ -20,6 +21,9 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ServerGamePacketListenerImpl.class) public class MinecraftChatHandler {
     @Shadow public ServerPlayer player;
@@ -59,8 +63,12 @@ import org.spongepowered.asm.mixin.Shadow;
                 this.disconnect(new TranslatableComponent("disconnect.spam"));
             }
         }
+    }
 
-        return;
+    @Inject(method = "handleCommand", at = @At("HEAD"), cancellable = true) private void handleCommand(String rawCommand, CallbackInfo ci) {
+        if(HalationCommandRegistry.INSTANCE.execute(rawCommand, player)) {
+            ci.cancel();
+        }
     }
 
     @Shadow public void send(Packet<?> p_147359_1_) {
