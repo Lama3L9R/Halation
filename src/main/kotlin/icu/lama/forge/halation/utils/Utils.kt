@@ -70,7 +70,17 @@ fun ServerPlayer.sendMessage(msg: String) {
 }
 
 fun ServerPlayer.sendTitle(title: String = "", subTitle: String = "", actionBar: String = "", fadeIn: Int = 2, stay: Int = 5, fadeOut: Int = 2) {
-    this.connection.send(ClientboundSetTitlesPacket())
+    if(title.isNotEmpty()) {
+        this.connection.send(ClientboundSetTitlesPacket(ClientboundSetTitlesPacket.Type.TITLE, title.toComponent(), fadeIn, stay, fadeOut))
+    }
+
+    if(subTitle.isNotEmpty()) {
+        this.connection.send(ClientboundSetTitlesPacket(ClientboundSetTitlesPacket.Type.SUBTITLE, subTitle.toComponent(), fadeIn, stay, fadeOut))
+    }
+
+    if(actionBar.isNotEmpty()) {
+        this.connection.send(ClientboundSetTitlesPacket(ClientboundSetTitlesPacket.Type.ACTIONBAR, actionBar.toComponent(), fadeIn, stay, fadeOut))
+    }
 }
 
 fun String.toServerPlayer(): ServerPlayer? {
