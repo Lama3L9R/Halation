@@ -1,5 +1,6 @@
 package icu.lama.forge.halation.utils
 
+import icu.lama.forge.halation.HalationForge
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.TextComponent
 import net.minecraft.network.protocol.game.ClientboundSetTitlesPacket
@@ -70,4 +71,8 @@ fun ServerPlayer.sendMessage(msg: String) {
 
 fun ServerPlayer.sendTitle(title: String = "", subTitle: String = "", actionBar: String = "", fadeIn: Int = 2, stay: Int = 5, fadeOut: Int = 2) {
     this.connection.send(ClientboundSetTitlesPacket())
+}
+
+fun String.toServerPlayer(): ServerPlayer? {
+    return HalationForge.theServer?.playerList?.getPlayerByName(this)
 }

@@ -12,7 +12,7 @@ import net.minecraft.world.level.dimension.DimensionType
 object ServerChatNetworkHandler {
     fun handle(source: ServerPlayer, msg: String): Component {
         findNotice(msg).forEach {
-
+            //todo impl
         }
         return TextComponent("${ChatColor.GRAY}[${getWorldName(source)}${ChatColor.GRAY}] ${ChatColor.GRAY}[${ChatColor.GREEN}${PrefixManager[source.uuid]}${ChatColor.GRAY}] ").append(source.name).append(" ${ChatColor.GRAY}: ${ChatColor.RESET}${msg}")
     }
@@ -37,7 +37,7 @@ object ServerChatNetworkHandler {
             }
             val player = message.substring(index + 1, spaceIndex)
 
-            HalationForge.theServer.playerList.getPlayerByName(player)?.let(players::add)
+            HalationForge.theServer!!.playerList.getPlayerByName(player)?.let(players::add)
             index = message.indexOf('@', spaceIndex)
         }
         return players

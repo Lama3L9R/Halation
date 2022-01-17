@@ -3,12 +3,12 @@ package icu.lama.forge.halation
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mongodb.MongoClient
 import com.mongodb.client.MongoDatabase
-import icu.lama.forge.halation.chat.commands.CommandPrefix
-import icu.lama.forge.halation.commands.CommandManualMangoDBOperation
+import icu.lama.forge.halation.commands.cmds.CommandPrefix
+import icu.lama.forge.halation.commands.cmds.CommandManualMangoDBOperation
 import icu.lama.forge.halation.commands.HalationCommandRegistry
+import icu.lama.forge.halation.utils.ChatColor
 import net.minecraft.commands.Commands
 import net.minecraft.core.Registry
-import net.minecraft.gametest.framework.TestCommand
 import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.MinecraftServer
@@ -22,6 +22,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import thedarkcolour.kotlinforforge.forge.FORGE_BUS
 import thedarkcolour.kotlinforforge.forge.LOADING_CONTEXT
+import kotlin.concurrent.thread
 
 
 @Mod("halation")
@@ -49,7 +50,6 @@ object HalationForge {
             mongoClient = MongoClient(HalationConfig.Mongodb.mongodbURL.get())
             mongoDatabase = mongoClient.getDatabase(HalationConfig.Mongodb.database.get())
         }
-
     }
 
     private fun registerCommands(event: RegisterCommandsEvent) {

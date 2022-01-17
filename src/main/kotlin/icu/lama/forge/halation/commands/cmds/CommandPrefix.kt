@@ -1,4 +1,4 @@
-package icu.lama.forge.halation.chat.commands
+package icu.lama.forge.halation.commands.cmds
 
 import icu.lama.forge.halation.chat.PrefixManager
 import icu.lama.forge.halation.commands.CommandBase

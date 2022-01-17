@@ -45,7 +45,7 @@ apply plugin: 'java'
 
 version = "${minecraft_version}-${mod_version}"
 group = 'icu.lama'
-archivesBaseName = ''
+archivesBaseName = 'halation'
 
 loom {
     mixinConfig "halation.mixins.json"

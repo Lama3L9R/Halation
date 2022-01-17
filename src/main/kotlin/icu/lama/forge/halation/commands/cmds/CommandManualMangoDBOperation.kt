@@ -1,4 +1,4 @@
-package icu.lama.forge.halation.commands
+package icu.lama.forge.halation.commands.cmds
 
 import com.mojang.brigadier.Command
 import com.mojang.brigadier.context.CommandContext
@@ -7,6 +7,7 @@ import icu.lama.forge.halation.utils.ChatColor
 import icu.lama.forge.halation.utils.doc
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.network.chat.TextComponent
+import org.bson.json.JsonWriterSettings
 
 // todo need test
 object CommandManualMangoDBOperation {
@@ -67,7 +68,7 @@ object CommandManualMangoDBOperation {
 
             context.source.sendSuccess(TextComponent("${ChatColor.GREEN}Result From MongoDB ${ChatColor.GRAY}==> "), true)
             HalationForge.mongoDatabase.getCollection(target).find(filter).forEach {
-                context.source.sendSuccess(TextComponent(it.toJson()), true)
+                context.source.sendSuccess(TextComponent(it.toJson(JsonWriterSettings.builder().indent(true).build())), true)
             }
 
             return 0
