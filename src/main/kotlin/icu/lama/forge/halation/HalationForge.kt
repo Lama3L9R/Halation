@@ -3,6 +3,7 @@ package icu.lama.forge.halation
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mongodb.MongoClient
 import com.mongodb.client.MongoDatabase
+import dev.inmo.tgbotapi.extensions.api.telegramBot
 import icu.lama.forge.halation.commands.cmds.CommandPrefix
 import icu.lama.forge.halation.commands.cmds.CommandManualMangoDBOperation
 import icu.lama.forge.halation.commands.HalationCommandRegistry
