@@ -2,17 +2,25 @@ package icu.lama.forge.halation
 
 import dev.inmo.tgbotapi.bot.TelegramBot
 import dev.inmo.tgbotapi.extensions.api.send.reply
+import dev.inmo.tgbotapi.extensions.api.send.sendMessage
 import dev.inmo.tgbotapi.extensions.api.send.sendTextMessage
 import dev.inmo.tgbotapi.extensions.api.telegramBot
 import dev.inmo.tgbotapi.extensions.behaviour_builder.buildBehaviourWithLongPolling
 import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onCommand
+import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onContentMessage
 import dev.inmo.tgbotapi.extensions.utils.asFromUserMessage
+import dev.inmo.tgbotapi.extensions.utils.extensions.parseCommandsWithParams
+import dev.inmo.tgbotapi.types.ChatId
+import dev.inmo.tgbotapi.types.message.content.TextContent
 import dev.inmo.tgbotapi.utils.PreviewFeature
+import icu.lama.forge.halation.utils.ChatColor
+import icu.lama.forge.halation.utils.toComponent
 import io.ktor.client.engine.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import io.ktor.utils.io.CancellationException
+import kotlinx.coroutines.*
+import net.minecraft.network.chat.ChatType
+import net.minecraft.server.players.UserBanListEntry
 import java.net.InetSocketAddress
 import java.net.Proxy
 import java.time.Instant
@@ -20,6 +28,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 object HalationRelayBot {
+    private val chatID = ChatId(HalationConfig.TGBot.group.get())
     private val timeMultiplier: Map<Char, Int> = mapOf(
         'y' to 31536000,
         'm' to 2628000,
@@ -33,9 +42,15 @@ object HalationRelayBot {
     private val botScope = CoroutineScope(Dispatchers.IO)
     private lateinit var bot: TelegramBot
 
+    @OptIn(DelicateCoroutinesApi::class)
+    fun launch() {
+        GlobalScope.launch {
+            init()
+        }
+    }
 
     @OptIn(PreviewFeature::class)
-    suspend fun init() {
+    private suspend fun init() {
         bot = telegramBot(HalationConfig.TGBot.token.get()) {
             engine {
                 if(HalationConfig.TGBot.proxy.get()) {
@@ -87,33 +102,102 @@ object HalationRelayBot {
                         }
                     }
                 }
+
+                onCommand("ban", requireOnlyCommandInMessage = false) {
+                    val args = it.parseCommandsWithParams()["ban"]
+                    if(args != null && args.size >= 2) {
+                        val target = HalationForge.theServer!!.playerList.getPlayerByName(args[0])
+                        val t = parseTime(args[1])
+                        val reason = args.drop(2).joinToString(" ")
+
+                        HalationForge.theServer.playerList.bans.add(UserBanListEntry(target.gameProfile, ))  // todo what the fuck did params means???
+                    }
+                }
+
+                onContentMessage {
+                    when(val content = it.content) {
+                        is TextContent -> {
+                            if(HalationConfig.TGBot.group.get() == it.chat.id.chatId) {
+                                val usr = it.asFromUserMessage()?.user
+                                if((usr?.username ?: "") in noForwardList) {
+                                    return@onContentMessage
+                                }
+
+                                val name = if(usr?.firstName == null && usr?.lastName == null) {
+                                    usr?.username?.username
+                                } else {
+                                    "${usr.firstName} ${usr.lastName}"
+                                }
+                                // todo Do this need to sync up?
+                                HalationForge.theServer!!.playerList.broadcastMessage("${ChatColor.AQUA}[${ChatColor.GREEN}RELAY${ChatColor.AQUA}] ${ChatColor.YELLOW}$name${ChatColor.RESET}: ${content.text}".toComponent(), ChatType.CHAT, null)
+                            } else {
+                                println("Ignored non-target chat message from: ${it.chat.id.chatId}")
+                            }
+                        }
+
+                        else -> {
+                            println("Ignored ${it.content::class.simpleName} type of chat message from: ${it.chat.id.chatId}")
+                        }
+                    }
+                }
             }.join()
         }.join()
     }
 
-    private fun parseTime(tStr: String): Date {
-        if(tStr.indexOf('.') >= 0) {
-            return _parseToTime()
+    fun callOnPlayerChat(uuid: UUID, msg: String) {
+        botScope.launch {
+            if (binding[uuid] !in noForwardList) {
+                bot.sendTextMessage(chatID, "${binding[uuid]}: $msg")
+            }
+        }
+    }
+
+    fun parseTime(tStr: String): Date {
+        if(tStr.indexOf('.') != -1) {
+            return parseToTime(tStr)
         }
 
         if(tStr.length % 2 != 0) {
-            throw IllegalArgumentException("Cannot parse!")
+            throw IllegalArgumentException("Cannot parse time string to Date object! tString: $tStr")
         }
 
-        val ins = Instant.now()
+        var ins = Instant.now()
 
         for (i in tStr.indices step 2) {
-            ins.plusSeconds((timeMultiplier[i] ?: 0).toLong() * (tStr[i + 1].code - 48).toLong()) // todo fix this
+            ins = ins.plusSeconds((timeMultiplier[tStr[i + 1]] ?: 0).toLong() * (tStr[i].code - 48).toLong()) // todo fix this
         }
+
+        println("d: $ins")
 
         return Date.from(ins)
     }
+    private fun parseToTime(tStr: String): Date {
+        println("_Parse called")
+        val pts = tStr.split("/")
+        val cal = GregorianCalendar()
+        val sysCal = Calendar.getInstance()
+        if(pts.size == 1) {
+            val raw = pts[0]
+            if(raw.contains(":")) {
+                val t = raw.split(":").map { it.toInt() }
+                if(t.size < 3) {
+                    throw IllegalArgumentException("Cannot parse time string to Date object! tString: $tStr")
+                }
+                cal.set(sysCal.get(Calendar.YEAR), sysCal.get(Calendar.MONTH), sysCal.get(Calendar.DAY_OF_MONTH), t[0], t[1], t[2])
+            }
+        } else if(pts.isNotEmpty()) {
+            val tRaw = pts[1].split(":").map { it.toInt() }
+            val dRaw = pts[0].split(".").map { it.toInt() }
 
-    private fun _parseToTime(): Date {
-        TODO("impl this")
+            if(tRaw.size < 3 || dRaw.size < 3) {
+                throw IllegalArgumentException("Cannot parse time string to Date object! tRaw < 3 or dRaw < 3 | tString = $tStr")
+            }
+
+            cal.set(dRaw[0], dRaw[1] - 1, dRaw[2], tRaw[0], tRaw[1], tRaw[2])
+        } else {
+            throw IllegalArgumentException("Cannot parse time string to Date object! tString: $tStr")
+        }
+
+        return cal.time
     }
-}
-
-suspend fun main() {
-    HalationRelayBot.init()
 }

@@ -1,6 +1,7 @@
 package icu.lama.forge.halation.chat
 
 import icu.lama.forge.halation.HalationForge
+import icu.lama.forge.halation.HalationRelayBot
 import icu.lama.forge.halation.utils.ChatColor
 import icu.lama.forge.halation.utils.debug.HomeEntity
 import icu.lama.forge.halation.utils.sendTitle
@@ -17,6 +18,8 @@ object ServerChatNetworkHandler {
                 subTitle = "${ChatColor.YELLOW}${it.name}${ChatColor.WHITE} 在聊天消息中提到了你，快去看看",
                 fadeIn = 10, stay =  3 * 20, fadeOut = 10)
         }
+
+        HalationRelayBot.callOnPlayerChat(source.uuid, msg)
         return TextComponent("${ChatColor.GRAY}[${getWorldName(source)}${ChatColor.GRAY}] ${ChatColor.GRAY}[${ChatColor.GREEN}${PrefixManager[source.uuid]}${ChatColor.GRAY}] ").append(source.name).append(" ${ChatColor.GRAY}: ${ChatColor.RESET}${msg}")
     }
 
