@@ -2,7 +2,6 @@ package icu.lama.forge.halation
 
 import dev.inmo.tgbotapi.bot.TelegramBot
 import dev.inmo.tgbotapi.extensions.api.send.reply
-import dev.inmo.tgbotapi.extensions.api.send.sendMessage
 import dev.inmo.tgbotapi.extensions.api.send.sendTextMessage
 import dev.inmo.tgbotapi.extensions.api.telegramBot
 import dev.inmo.tgbotapi.extensions.behaviour_builder.buildBehaviourWithLongPolling
@@ -14,9 +13,9 @@ import dev.inmo.tgbotapi.types.ChatId
 import dev.inmo.tgbotapi.types.message.content.TextContent
 import dev.inmo.tgbotapi.utils.PreviewFeature
 import icu.lama.forge.halation.utils.ChatColor
+import icu.lama.forge.halation.utils.debug.HomeEntity
 import icu.lama.forge.halation.utils.toComponent
 import io.ktor.client.engine.*
-import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
 import net.minecraft.network.chat.ChatType
@@ -114,7 +113,7 @@ object HalationRelayBot {
                     }
                 }
 
-                onContentMessage {
+                @HomeEntity("cn.thelama.homeent.relay.RelayBotV2") onContentMessage {
                     when(val content = it.content) {
                         is TextContent -> {
                             if(HalationConfig.TGBot.group.get() == it.chat.id.chatId) {
